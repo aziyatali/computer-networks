@@ -1,0 +1,76 @@
+import socket
+import sys
+import os
+def main(argv):
+        # python webserver.py -p 8080 -d ./web
+    # -p represents the port number for listening socket
+    #  -d represents the location of Web objects
+    if len(argv) != 4:
+        print("Wrong argument or argument size error")
+        sys.exit()
+    port_num = int(argv[1])
+    file_location = str(argv[3])
+
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('localhost', port_num)
+    print("Will conect to ", server_address)
+    #server binds to host and port number
+    server.bind(server_address)
+    server.listen(1)
+
+    while(1):
+        print("waiting for the connection")
+        connection, client_address = server.accept()
+        print("Client address is: ", client_address)
+        while (1):
+            data = connection.recv(10054)
+            data.decode()
+            print("data: ", data)
+            fail = data.split(" ")
+            f = str(fail[1])
+            _list = f.split("/")
+            addres_server = ""
+            _file = ""
+            if (len(_list)>1):
+                 _file = _list[-1]
+                 for i in range(0, len(_list)-1):
+                     addres_server += _list[i]+"/"
+            else:
+                _file = _list[0]
+            if (len(fail)<2):
+                data_to_send = "Incorrect request message \n or incorrect argument "
+            else:
+                file_location+=addres_server
+                entry = os.listdir(file_location)
+                data_to_send = ""
+                found = False
+                for i in entry:
+                    if i == _file:
+                        found = True
+                        d = open(file_location+i, "r")
+                        for x in d:
+                            data_to_send+=x+"\n"
+                if found == False:
+                    data_to_send = "404 Not found '\n' The object you are looking for weren't found"
+                 #   print("Hey", i)
+                  #  if (i == f):
+                   #     with open(i, 'r') as file:
+                    #        data_to_client = file.read().replace('\n', '')
+                   # else:
+                    #    data_to_client = ""
+
+               # for i in os.listdir('\\\\myshare/folder'):
+
+                #data_to_client = "WTF"
+                os.chdir("./")
+                if (len(data)>0):
+                    print("Sending data to client", f)
+                    connection.sendall(data_to_send.encode())
+                    break
+                else:
+                    print("No more data left")
+                    break
+
+        connection.close()
+if __name__ == "__main__":
+    main(sys.argv[1:])
